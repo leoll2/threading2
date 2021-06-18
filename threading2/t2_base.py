@@ -151,6 +151,21 @@ class Condition(_Condition):
         finally:
             self._acquire_restore(saved_state)
 
+    def wait_for(self, predicate, timeout=None):
+        endtime = None
+        waittime = timeout
+        result = predicate()
+        while not result:
+            if waittime is not None:
+                endtime = _time() + waittime
+            else:
+                waittime = endtime - _time()
+                if waittime <= 0:
+                    break
+            self.wait(waittime)
+            result = predicate()
+        return result
+
 
 class Semaphore(_ContextManagerMixin):
     """Re-implemented Semaphore class.
